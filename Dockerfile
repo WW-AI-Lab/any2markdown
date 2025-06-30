@@ -33,9 +33,19 @@ RUN mkdir -p logs temp_images uploads
 
 # 创建非root用户（安全最佳实践）
 RUN groupadd -r appuser && useradd -r -g appuser -m appuser
-RUN chown -R appuser:appuser /app
-# 确保用户目录权限正确
-RUN mkdir -p /home/appuser/.cache && chown -R appuser:appuser /home/appuser
+
+# 创建模型缓存目录（支持挂载）
+RUN mkdir -p /app/models/cache \
+    /app/models/huggingface \
+    /app/models/torch \
+    /app/models/transformers \
+    /home/appuser/.cache/marker \
+    /home/appuser/.cache/huggingface \
+    /home/appuser/.cache/torch \
+    /home/appuser/.cache/transformers
+
+# 设置目录权限
+RUN chown -R appuser:appuser /app /home/appuser
 USER appuser
 
 # 设置环境变量
@@ -51,6 +61,19 @@ ENV WORKER_CLASS=uvicorn.workers.UvicornWorker
 ENV MAX_REQUESTS=1000
 ENV MAX_REQUESTS_JITTER=100
 ENV KEEPALIVE=5
+
+# 模型缓存配置（可通过docker run -e 覆盖）
+ENV MODEL_CACHE_DIR=/home/appuser/.cache/marker
+ENV HF_HOME=/home/appuser/.cache/huggingface
+ENV HF_HUB_CACHE=/home/appuser/.cache/huggingface/hub
+ENV HF_ASSETS_CACHE=/home/appuser/.cache/huggingface/assets
+ENV TORCH_HOME=/home/appuser/.cache/torch
+ENV TRANSFORMERS_CACHE=/home/appuser/.cache/transformers
+ENV HF_HUB_DISABLE_TELEMETRY=true
+ENV HF_HUB_DISABLE_PROGRESS_BARS=false
+
+# 声明挂载点（用于模型缓存持久化）
+VOLUME ["/home/appuser/.cache/marker", "/home/appuser/.cache/huggingface", "/home/appuser/.cache/torch", "/home/appuser/.cache/transformers"]
 
 # 暴露端口
 EXPOSE 3000

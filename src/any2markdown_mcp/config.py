@@ -30,8 +30,22 @@ class Config(BaseSettings):
     temp_image_dir: str = Field(default="./temp_images", description="临时图片存储目录")
     
     # 模型配置
-    model_cache_dir: str = Field(default="~/.cache/marker", description="模型缓存目录")
+    model_cache_dir: str = Field(default="~/.cache/marker", description="Marker模型缓存目录")
     device: str = Field(default="auto", description="计算设备 (cpu/cuda/mps/auto)")
+    
+    # Hugging Face模型缓存配置
+    hf_home: str = Field(default="~/.cache/huggingface", description="Hugging Face缓存根目录")
+    hf_hub_cache: str = Field(default="~/.cache/huggingface/hub", description="模型仓库缓存目录")
+    hf_assets_cache: str = Field(default="~/.cache/huggingface/assets", description="资产缓存目录")
+    torch_home: str = Field(default="~/.cache/torch", description="PyTorch模型缓存目录")
+    transformers_cache: str = Field(default="~/.cache/transformers", description="Transformers库缓存目录")
+    
+    # 模型下载配置
+    hf_hub_enable_hf_transfer: bool = Field(default=False, description="使用hf_transfer加速下载")
+    hf_hub_disable_progress_bars: bool = Field(default=False, description="禁用下载进度条")
+    hf_hub_disable_telemetry: bool = Field(default=True, description="禁用使用遥测")
+    model_download_timeout: int = Field(default=300, description="模型下载超时时间(秒)")
+    model_retry_attempts: int = Field(default=3, description="模型下载重试次数")
     
     # PDF处理配置
     pdf_languages: str = Field(default="en", description="PDF OCR默认语言")
@@ -84,14 +98,29 @@ class Config(BaseSettings):
         super().__init__(**kwargs)
         
         # 展开用户目录路径
-        if self.model_cache_dir.startswith("~"):
-            self.model_cache_dir = str(Path(self.model_cache_dir).expanduser())
+        cache_dirs = [
+            'model_cache_dir', 'hf_home', 'hf_hub_cache', 
+            'hf_assets_cache', 'torch_home', 'transformers_cache'
+        ]
+        
+        for cache_dir_attr in cache_dirs:
+            cache_dir_value = getattr(self, cache_dir_attr)
+            if cache_dir_value.startswith("~"):
+                setattr(self, cache_dir_attr, str(Path(cache_dir_value).expanduser()))
         
         # 确保目录存在
         Path(self.model_cache_dir).mkdir(parents=True, exist_ok=True)
+        Path(self.hf_home).mkdir(parents=True, exist_ok=True)
+        Path(self.hf_hub_cache).mkdir(parents=True, exist_ok=True)
+        Path(self.hf_assets_cache).mkdir(parents=True, exist_ok=True)
+        Path(self.torch_home).mkdir(parents=True, exist_ok=True)
+        Path(self.transformers_cache).mkdir(parents=True, exist_ok=True)
         Path(self.temp_image_dir).mkdir(parents=True, exist_ok=True)
         if self.log_file:
             Path(self.log_file).parent.mkdir(parents=True, exist_ok=True)
+        
+        # 设置环境变量，确保模型库能正确使用缓存目录
+        self._set_model_cache_env_vars()
     
     @property
     def base_url(self) -> str:
@@ -144,6 +173,36 @@ class Config(BaseSettings):
     def validate_image_size(self, image_size: int) -> bool:
         """验证图片大小"""
         return image_size <= self.image_max_size
+    
+    def _set_model_cache_env_vars(self):
+        """设置模型缓存相关的环境变量"""
+        env_mappings = {
+            'HF_HOME': self.hf_home,
+            'HF_HUB_CACHE': self.hf_hub_cache,
+            'HF_ASSETS_CACHE': self.hf_assets_cache,
+            'TORCH_HOME': self.torch_home,
+            'TRANSFORMERS_CACHE': self.transformers_cache,
+            'HF_HUB_ENABLE_HF_TRANSFER': str(self.hf_hub_enable_hf_transfer).lower(),
+            'HF_HUB_DISABLE_PROGRESS_BARS': str(self.hf_hub_disable_progress_bars).lower(),
+            'HF_HUB_DISABLE_TELEMETRY': str(self.hf_hub_disable_telemetry).lower(),
+        }
+        
+        for env_var, value in env_mappings.items():
+            # 只有当环境变量未设置时才设置，避免覆盖用户自定义设置
+            if env_var not in os.environ:
+                os.environ[env_var] = value
+    
+    def get_all_cache_dirs(self) -> dict:
+        """获取所有缓存目录的配置"""
+        return {
+            'marker_cache': self.model_cache_dir,
+            'hf_home': self.hf_home,
+            'hf_hub_cache': self.hf_hub_cache,
+            'hf_assets_cache': self.hf_assets_cache,
+            'torch_home': self.torch_home,
+            'transformers_cache': self.transformers_cache,
+            'temp_images': self.temp_image_dir,
+        }
 
 # 创建一个全局的配置实例，供其他模块使用
 settings = Config() 

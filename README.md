@@ -265,6 +265,18 @@ TEMP_IMAGE_DIR=./temp_images
 MODEL_CACHE_DIR=~/.cache/marker
 USE_GPU=true
 
+# Hugging Face模型缓存配置
+HF_HOME=~/.cache/huggingface
+HF_HUB_CACHE=~/.cache/huggingface/hub
+HF_ASSETS_CACHE=~/.cache/huggingface/assets
+TORCH_HOME=~/.cache/torch
+TRANSFORMERS_CACHE=~/.cache/transformers
+
+# 模型下载配置
+HF_HUB_ENABLE_HF_TRANSFER=false
+HF_HUB_DISABLE_PROGRESS_BARS=false
+HF_HUB_DISABLE_TELEMETRY=true
+
 # 日志配置
 LOG_LEVEL=INFO
 LOG_FILE=logs/server.log
@@ -305,6 +317,36 @@ DEBUG=false
 ./scripts/deploy.sh docker --dev
 ```
 
+#### 模型缓存配置
+
+为了避免每次重启容器都重新下载模型，建议配置模型缓存目录挂载：
+
+```bash
+# 1. 初始化模型缓存目录结构
+./scripts/setup_model_cache.sh
+
+# 2. 使用 Docker Compose（推荐）
+docker-compose up -d
+
+# 3. 或者手动指定挂载目录
+docker run -d \
+  -p 3000:3000 \
+  -v ./models/marker:/home/appuser/.cache/marker \
+  -v ./models/huggingface:/home/appuser/.cache/huggingface \
+  -v ./models/torch:/home/appuser/.cache/torch \
+  -v ./models/transformers:/home/appuser/.cache/transformers \
+  -v ./logs:/app/logs \
+  -v ./temp_images:/app/temp_images \
+  --name any2markdown \
+  any2markdown:latest
+```
+
+**模型缓存说明：**
+- **首次启动**：系统会自动下载所需模型（约3-5GB），需要较长时间
+- **后续启动**：使用缓存的模型，启动速度显著提升
+- **磁盘空间**：建议预留至少10GB空间用于模型缓存
+- **网络要求**：需要能够访问 Hugging Face Hub
+
 #### 服务管理
 
 ```bash
@@ -337,6 +379,18 @@ enable_header_footer_removal = true
 cache_dir = "~/.cache/marker"
 enable_gpu = true
 preload_models = true
+
+# Hugging Face 模型缓存配置
+hf_home = "~/.cache/huggingface"
+hf_hub_cache = "~/.cache/huggingface/hub"
+hf_assets_cache = "~/.cache/huggingface/assets"
+torch_home = "~/.cache/torch"
+transformers_cache = "~/.cache/transformers"
+
+# 模型下载选项
+hf_hub_enable_hf_transfer = false
+hf_hub_disable_progress_bars = false
+hf_hub_disable_telemetry = true
 
 [logging]
 level = "INFO"

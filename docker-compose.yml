@@ -24,6 +24,11 @@ services:
       - ./temp_images:/app/temp_images
       - ./uploads:/app/uploads
       - ./.env:/app/.env:ro  # 只读挂载环境文件
+      # 模型缓存目录挂载（持久化模型数据）
+      - ./models/marker:/home/appuser/.cache/marker
+      - ./models/huggingface:/home/appuser/.cache/huggingface
+      - ./models/torch:/home/appuser/.cache/torch
+      - ./models/transformers:/home/appuser/.cache/transformers
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/status"]
       interval: 30s
@@ -61,6 +66,11 @@ services:
       - ./uploads:/app/uploads
       - ./src:/app/src  # 开发模式挂载源码以支持热重载
       - ./.env:/app/.env:ro
+      # 模型缓存目录挂载（开发环境）
+      - ./models/marker:/home/appuser/.cache/marker
+      - ./models/huggingface:/home/appuser/.cache/huggingface
+      - ./models/torch:/home/appuser/.cache/torch
+      - ./models/transformers:/home/appuser/.cache/transformers
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/status"]
       interval: 30s
@@ -104,6 +114,11 @@ services:
       - ./temp_images:/app/temp_images
       - ./uploads:/app/uploads
       - ./.env:/app/.env:ro
+      # 模型缓存目录挂载（GPU环境，需要更大存储空间）
+      - ./models/marker:/home/appuser/.cache/marker
+      - ./models/huggingface:/home/appuser/.cache/huggingface
+      - ./models/torch:/home/appuser/.cache/torch
+      - ./models/transformers:/home/appuser/.cache/transformers
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/status"]
       interval: 30s

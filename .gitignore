@@ -188,15 +188,19 @@ temp/
 *.tmp
 *.temp
 
-# Model cache
+# Model cache directories (for marker-pdf and ML models)
 .cache/
 models/
 ~/.cache/marker/
+~/.cache/huggingface/
+~/.cache/torch/
+~/.cache/transformers/
 
 # Document processing temporary files
 uploads/
 processed/
 temp_docs/
+temp_images/
 
 # Application specific
 *.pdf
