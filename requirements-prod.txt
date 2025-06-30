@@ -1,6 +1,4 @@
-# Production Requirements - 生产环境精简依赖
-
-# MCP Server Core Dependencies
+# Core MCP and FastAPI dependencies
 mcp>=1.10.0
 fastapi>=0.115.13
 uvicorn[standard]>=0.31.0
@@ -8,43 +6,36 @@ gunicorn>=21.2.0
 pydantic>=2.10.0
 httpx>=0.28.1
 
-# Document Processing Dependencies
-marker-pdf>=1.7.0
+# Document processing (lightweight alternatives)
 python-docx>=1.1.0
 pandas>=2.2.0
 openpyxl>=3.1.0
 xlrd>=2.0.1
 
-# File Processing
+# File handling
 aiofiles>=23.2.0
 python-multipart>=0.0.17
 
-# Machine Learning & AI (Core only)
-torch>=2.4.0
-transformers>=4.45.0
-huggingface-hub>=0.25.0
-
-# Image Processing
+# Image processing (lightweight)
 Pillow>=10.0.0
 
-# Async & Concurrency
+# Async and concurrency
 asyncio-pool>=0.6.0
 
-# Utilities
+# Logging and configuration
 structlog>=24.0.0
 python-dotenv>=1.0.0
 psutil>=6.0.0
 tqdm>=4.66.0
 
-# Data Processing (Core only)
+# Basic utilities
 numpy>=1.26.0
 
-# Optional Dependencies for enhanced features
+# PDF processing
 pymupdf>=1.24.0
+
+# File type detection
 python-magic>=0.4.27
 
-# Language Detection
-langdetect>=1.0.9
-
-# HTTP Client
-httpx>=0.24.0 
+# Language detection
+langdetect>=1.0.9 

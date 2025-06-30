@@ -136,8 +136,22 @@ def create_app():
     logger.info("🚀 正在创建Any2Markdown MCP Server应用...")
     mcp_server = create_mcp_server()
     
-    # FastMCP的app属性是FastAPI实例
-    app = mcp_server.app
+    # 尝试不同的方式获取FastAPI实例
+    try:
+        # 方式1: 直接访问app属性
+        app = mcp_server.app
+    except AttributeError:
+        try:
+            # 方式2: 访问_app属性
+            app = mcp_server._app
+        except AttributeError:
+            try:
+                # 方式3: 访问fastapi_app属性
+                app = mcp_server.fastapi_app
+            except AttributeError:
+                # 方式4: 直接返回mcp_server对象
+                logger.warning("无法获取FastAPI应用实例，返回FastMCP对象")
+                app = mcp_server
     
     logger.info("✅ Any2Markdown MCP Server应用创建完成")
     return app

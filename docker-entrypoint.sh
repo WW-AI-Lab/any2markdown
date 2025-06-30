@@ -120,30 +120,7 @@ else
     print_info "Max Requests: $DEFAULT_MAX_REQUESTS"
     print_info "Keep Alive: $DEFAULT_KEEPALIVE seconds"
     
-    # 检查是否安装了gunicorn
-    if command -v gunicorn >/dev/null 2>&1; then
-        # 生产模式使用Gunicorn + Uvicorn workers以获得更好的性能
-        exec gunicorn src.any2markdown_mcp.server:create_app \
-            --factory \
-            --bind "$DEFAULT_HOST:$DEFAULT_PORT" \
-            --workers "$DEFAULT_WORKERS" \
-            --worker-class "$DEFAULT_WORKER_CLASS" \
-            --max-requests "$DEFAULT_MAX_REQUESTS" \
-            --max-requests-jitter "$DEFAULT_MAX_REQUESTS_JITTER" \
-            --preload \
-            --keepalive "$DEFAULT_KEEPALIVE" \
-            --access-logfile - \
-            --error-logfile - \
-            --log-level "$DEFAULT_LOG_LEVEL" \
-            --timeout 300 \
-            --graceful-timeout 300
-    else
-        print_warning "Gunicorn not found, falling back to uvicorn"
-        exec uvicorn src.any2markdown_mcp.server:create_app \
-            --factory \
-            --host "$DEFAULT_HOST" \
-            --port "$DEFAULT_PORT" \
-            --log-level "$DEFAULT_LOG_LEVEL" \
-            --access-log
-    fi
+    # 生产模式使用Python直接运行服务器脚本
+    print_info "使用Python直接启动服务器..."
+    exec python run_server.py
 fi 

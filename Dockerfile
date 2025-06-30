@@ -4,30 +4,20 @@ FROM python:3.11-slim
 # 设置工作目录
 WORKDIR /app
 
-# 配置中国大陆友好的APT源
-RUN echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
-    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list && \
-    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian-security bookworm-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list
-
-# 安装系统依赖（仅安装必要的curl用于健康检查）
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
-    rm -rf /var/lib/apt/lists/* && \
-    apt-get clean
-
-# 配置pip使用华为云源（与您的本地配置一致）
-RUN pip config set global.index-url https://repo.huaweicloud.com/repository/pypi/simple && \
+# 直接配置pip使用阿里云源（避免系统包管理器问题）
+RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ && \
     pip config set global.timeout 120 && \
-    pip config set global.trusted-host repo.huaweicloud.com && \
-    pip config set install.trusted-host repo.huaweicloud.com
+    pip config set global.trusted-host mirrors.aliyun.com && \
+    pip config set install.trusted-host mirrors.aliyun.com
 
 # 复制依赖文件
-COPY requirements.txt pyproject.toml ./
+COPY requirements-prod.txt ./requirements.txt
+COPY pyproject.toml ./
 
-# 安装Python依赖（包括生产服务器）
+# 安装Python依赖（使用生产环境精简依赖）
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir gunicorn
+    pip install --no-cache-dir gunicorn uvicorn[standard]
 
 # 复制项目文件
 COPY src/ ./src/
@@ -42,8 +32,10 @@ RUN chmod +x docker-entrypoint.sh
 RUN mkdir -p logs temp_images uploads
 
 # 创建非root用户（安全最佳实践）
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN groupadd -r appuser && useradd -r -g appuser -m appuser
 RUN chown -R appuser:appuser /app
+# 确保用户目录权限正确
+RUN mkdir -p /home/appuser/.cache && chown -R appuser:appuser /home/appuser
 USER appuser
 
 # 设置环境变量
@@ -63,9 +55,9 @@ ENV KEEPALIVE=5
 # 暴露端口
 EXPOSE 3000
 
-# 健康检查
+# 简化健康检查（不依赖curl）
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:3000/api/v1/status || exit 1
+    CMD python -c "import requests; requests.get('http://localhost:3000/api/v1/status', timeout=5)" || exit 1
 
 # 使用优化的入口脚本
 ENTRYPOINT ["./docker-entrypoint.sh"] 
