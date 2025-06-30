@@ -1,0 +1,62 @@
+# MCP Server Core Dependencies - Using available stable versions
+mcp>=1.10.0
+fastapi>=0.115.13
+uvicorn[standard]>=0.31.0
+pydantic>=2.10.0
+httpx>=0.28.1
+
+# Document Processing Dependencies - Available stable versions
+marker-pdf>=1.7.0  # Official release from datalab-to/marker
+python-docx>=1.1.0
+pandas>=2.2.0
+openpyxl>=3.1.0
+xlrd>=2.0.1
+
+# File Processing - Available stable
+aiofiles>=23.2.0
+python-multipart>=0.0.17
+
+# Machine Learning & AI - Available stable
+torch>=2.4.0
+transformers>=4.45.0
+sentence-transformers>=3.0.0
+huggingface-hub>=0.25.0
+
+# Image Processing (for PDF OCR) - Available stable  
+Pillow>=10.0.0
+opencv-python>=4.9.0
+
+# Async & Concurrency - Available stable
+asyncio-pool>=0.6.0
+aiodns>=3.0.0
+
+# Utilities - Available stable
+structlog>=24.0.0
+python-dotenv>=1.0.0
+psutil>=6.0.0
+tqdm>=4.66.0
+
+# Data Processing - Available stable
+numpy>=1.26.0
+matplotlib>=3.8.0
+
+# Development Dependencies - Available stable
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pytest-cov>=5.0.0
+black>=24.0.0
+isort>=5.13.0
+mypy>=1.10.0
+flake8>=7.0.0
+bandit>=1.7.0
+
+# Optional Dependencies for enhanced features - Available stable
+pymupdf>=1.24.0  # For PDF structure analysis
+python-magic>=0.4.27  # For file type detection
+redis>=5.0.0  # For caching
+
+# Language Detection
+langdetect>=1.0.9
+
+# HTTP Client for testing
+httpx>=0.24.0 

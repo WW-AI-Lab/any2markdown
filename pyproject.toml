@@ -1,0 +1,190 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "any2markdown"
+version = "1.0.0"
+description = "A Model Context Protocol server for converting documents to Markdown"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Any2Markdown Team", email = "team@any2markdown.com"},
+]
+keywords = ["mcp", "markdown", "pdf", "document", "conversion", "ai"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup",
+    "Topic :: Office/Business :: Office Suites",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "mcp>=1.10.1",
+    "fastapi>=0.115.14",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.11.0",
+    "httpx>=0.28.1",
+    "marker-pdf>=1.7.5",
+    "python-docx>=1.1.2",
+    "pandas>=2.2.3",
+    "openpyxl>=3.1.5",
+    "aiofiles>=24.1.0",
+    "structlog>=25.4.0",
+    "python-dotenv>=1.0.1",
+    "psutil>=6.1.1",
+    "torch>=2.5.1",
+    "transformers>=4.47.1",
+    "Pillow>=11.1.0",
+    "numpy>=2.2.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "black>=25.1.0",
+    "isort>=5.13.2",
+    "mypy>=1.13.0",
+    "flake8>=7.1.1",
+    "bandit>=1.8.0",
+]
+enhanced = [
+    "pymupdf>=1.25.2",
+    "python-magic>=0.4.27",
+    "redis>=5.2.1",
+    "opencv-python>=4.10.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/WW-AI-Lab/any2markdown"
+Documentation = "https://github.com/WW-AI-Lab/any2markdown/blob/main/docs/"
+Repository = "https://github.com/WW-AI-Lab/any2markdown"
+Issues = "https://github.com/WW-AI-Lab/any2markdown/issues"
+
+[project.scripts]
+any2markdown-mcp = "any2markdown_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/any2markdown_mcp"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/docs",
+    "/examples",
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py39", "py310", "py311"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["any2markdown_mcp"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "marker.*",
+    "pymupdf.*",
+    "magic.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=src/any2markdown_mcp",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Slow tests that require model loading",
+]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["src/any2markdown_mcp"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "E501", "W503"]
+max-complexity = 10
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".venv",
+    ".mypy_cache",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "test_*.py"]
+skips = ["B101", "B601"] 
