@@ -105,6 +105,8 @@ python test_streamable_client.py
 ### RESTful API
 
 > 📋 **完整API文档**: 详细的API设计和使用说明请参考 [RESTful API 设计文档](docs/restful-api-design.md)
+> 
+> 📋 **dify集成文档**: 详细的dify集成文档请参考 [dify集成文档](docs/dify.md)
 
 Any2Markdown 提供统一的RESTful API接口，支持两种调用方式：
 
@@ -360,9 +362,14 @@ python test_restful_api.py      # REST API 测试
 python test_streamable_client.py # MCP 协议测试
 ```
 
+## dify集成
+
+支持在dify工作流中集成，即通过dify 默认的http节点即可实现文件转换，具体方法查阅[dify集成](docs/dify.md)
+
 ## 📊 性能
 
 ### 基准测试
+
 - **PDF 转换**：~2-5 秒/页（使用 GPU）
 - **Word 转换**：~0.5-2 秒/文档
 - **Excel 转换**：~0.1-1 秒/工作表
