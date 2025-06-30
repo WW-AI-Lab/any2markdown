@@ -127,3 +127,17 @@ def create_mcp_server() -> FastMCP:
     logger.info("  - API文档: /api/v1/docs")
     
     return mcp
+
+def create_app():
+    """
+    应用工厂函数，用于Gunicorn/Uvicorn启动
+    返回FastAPI应用实例
+    """
+    logger.info("🚀 正在创建Any2Markdown MCP Server应用...")
+    mcp_server = create_mcp_server()
+    
+    # FastMCP的app属性是FastAPI实例
+    app = mcp_server.app
+    
+    logger.info("✅ Any2Markdown MCP Server应用创建完成")
+    return app

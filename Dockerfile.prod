@@ -1,13 +1,27 @@
-# Any2Markdown MCP Server Dockerfile
+# Any2Markdown MCP Server - 生产环境Dockerfile
+# 多阶段构建，减少最终镜像大小
+
+# 第一阶段：构建阶段
+FROM python:3.11-slim AS builder
+
+# 配置pip使用华为云源
+RUN pip config set global.index-url https://repo.huaweicloud.com/repository/pypi/simple && \
+    pip config set global.timeout 120 && \
+    pip config set global.trusted-host repo.huaweicloud.com && \
+    pip config set install.trusted-host repo.huaweicloud.com
+
+# 复制依赖文件
+COPY requirements-prod.txt ./
+
+# 创建虚拟环境并安装依赖
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements-prod.txt && \
+    pip install --no-cache-dir gunicorn
+
+# 第二阶段：运行阶段
 FROM python:3.11-slim
-
-# 设置工作目录
-WORKDIR /app
-
-# 配置中国大陆友好的APT源
-RUN echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
-    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list && \
-    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian-security bookworm-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list
 
 # 安装系统依赖（仅安装必要的curl用于健康检查）
 RUN apt-get update && \
@@ -15,19 +29,12 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
 
-# 配置pip使用华为云源（与您的本地配置一致）
-RUN pip config set global.index-url https://repo.huaweicloud.com/repository/pypi/simple && \
-    pip config set global.timeout 120 && \
-    pip config set global.trusted-host repo.huaweicloud.com && \
-    pip config set install.trusted-host repo.huaweicloud.com
+# 从构建阶段复制虚拟环境
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# 复制依赖文件
-COPY requirements.txt pyproject.toml ./
-
-# 安装Python依赖（包括生产服务器）
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir gunicorn
+# 设置工作目录
+WORKDIR /app
 
 # 复制项目文件
 COPY src/ ./src/

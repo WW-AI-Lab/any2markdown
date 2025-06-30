@@ -6,30 +6,77 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - MCP_SERVER_HOST=0.0.0.0
-      - MCP_SERVER_PORT=3000
-      - DEBUG=false
+      - HOST=0.0.0.0
+      - PORT=3000
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
       - MAX_CONCURRENT_JOBS=3
       - REQUEST_TIMEOUT=300
       - MAX_FILE_SIZE=104857600
       - USE_GPU=false  # 在Docker中默认禁用GPU
-      - LOG_LEVEL=INFO
+      - WORKERS=4
+      - WORKER_CLASS=uvicorn.workers.UvicornWorker
+      - MAX_REQUESTS=1000
+      - MAX_REQUESTS_JITTER=100
+      - KEEPALIVE=5
     volumes:
       - ./logs:/app/logs
       - ./temp_images:/app/temp_images
+      - ./uploads:/app/uploads
       - ./.env:/app/.env:ro  # 只读挂载环境文件
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/status"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     deploy:
       resources:
         limits:
           memory: 4G
+          cpus: '2.0'
         reservations:
           memory: 2G
+          cpus: '1.0'
+
+  # 开发模式服务
+  any2markdown-mcp-dev:
+    build: .
+    container_name: any2markdown-dev
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+      - MAX_CONCURRENT_JOBS=2
+      - REQUEST_TIMEOUT=300
+      - MAX_FILE_SIZE=104857600
+      - USE_GPU=false
+    volumes:
+      - ./logs:/app/logs
+      - ./temp_images:/app/temp_images
+      - ./uploads:/app/uploads
+      - ./src:/app/src  # 开发模式挂载源码以支持热重载
+      - ./.env:/app/.env:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    profiles:
+      - dev  # 使用 --profile dev 来启动开发版本
 
   # 可选: 添加GPU支持的服务
   any2markdown-mcp-gpu:
@@ -37,26 +84,40 @@ services:
     container_name: any2markdown-gpu
     restart: unless-stopped
     ports:
-      - "3001:3000"
+      - "3002:3000"
     environment:
-      - MCP_SERVER_HOST=0.0.0.0
-      - MCP_SERVER_PORT=3000
-      - DEBUG=false
+      - HOST=0.0.0.0
+      - PORT=3000
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
       - MAX_CONCURRENT_JOBS=2  # GPU版本减少并发数
       - REQUEST_TIMEOUT=300
       - MAX_FILE_SIZE=104857600
       - USE_GPU=true
-      - LOG_LEVEL=INFO
+      - WORKERS=2  # GPU版本减少worker数量
+      - WORKER_CLASS=uvicorn.workers.UvicornWorker
+      - MAX_REQUESTS=500
+      - MAX_REQUESTS_JITTER=50
+      - KEEPALIVE=5
     volumes:
       - ./logs:/app/logs
       - ./temp_images:/app/temp_images
+      - ./uploads:/app/uploads
       - ./.env:/app/.env:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s  # GPU版本需要更长启动时间
     deploy:
       resources:
         limits:
           memory: 8G
+          cpus: '4.0'
         reservations:
           memory: 4G
+          cpus: '2.0'
           devices:
             - driver: nvidia
               count: 1
