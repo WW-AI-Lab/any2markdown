@@ -1,0 +1,493 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: workflow
+  name: 文档转markdown测试
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/json_process:0.0.2@7afb534cc85b28a8e9c7f9410d1cfc31fb7bd3950023355a37059dbe809ac776
+kind: app
+version: 0.1.5
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        audio_file_size_limit: 100
+        batch_count_limit: 5
+        file_size_limit: 60
+        image_file_size_limit: 10
+        video_file_size_limit: 500
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: http-request
+      id: 1751253481465-source-1751253916662-target
+      source: '1751253481465'
+      sourceHandle: source
+      target: '1751253916662'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: tool
+      id: 1751253916662-source-1751256694068-target
+      source: '1751253916662'
+      sourceHandle: source
+      target: '1751256694068'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: tool
+        targetType: code
+      id: 1751256694068-source-1751261925888-target
+      source: '1751256694068'
+      sourceHandle: source
+      target: '1751261925888'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: iteration
+      id: 1751261925888-source-1751265922152-target
+      source: '1751261925888'
+      sourceHandle: source
+      target: '1751265922152'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: iteration
+        targetType: end
+      id: 1751265922152-source-1751254067163-target
+      source: '1751265922152'
+      sourceHandle: source
+      target: '1751254067163'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1751265922152'
+        sourceType: iteration-start
+        targetType: template-transform
+      id: 1751265922152start-source-1751265935484-target
+      source: 1751265922152start
+      sourceHandle: source
+      target: '1751265935484'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: 开始
+        type: start
+        variables:
+        - allowed_file_extensions: []
+          allowed_file_types:
+          - document
+          allowed_file_upload_methods:
+          - local_file
+          - remote_url
+          label: 上传文件
+          max_length: 5
+          options: []
+          required: false
+          type: file-list
+          variable: files
+      height: 90
+      id: '1751253481465'
+      position:
+        x: 30
+        y: 287
+      positionAbsolute:
+        x: 30
+        y: 287
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - file:
+            - '1751253481465'
+            - files
+            id: key-value-497
+            key: file
+            type: file
+            value: ''
+          - id: key-value-595
+            key: extract_images
+            type: text
+            value: 'true'
+          - id: key-value-628
+            key: include_content
+            type: text
+            value: 'false'
+          - id: key-value-655
+            key: remove_header_footer
+            type: text
+            value: 'true'
+          - id: key-value-698
+            key: paginate_output
+            type: text
+            value: 'true'
+          - id: key-value-731
+            key: output_format
+            type: text
+            value: markdown
+          type: form-data
+        desc: ''
+        headers: content-type:multipart/form-data; boundary=----WebKitFormBoundary738DqlfrGaqrMXf1
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 3
+          retry_enabled: false
+          retry_interval: 100
+        selected: true
+        timeout:
+          connect: 10
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+          read: 120
+          write: 60
+        title: HTTP 请求
+        type: http-request
+        url: http://192.168.1.24:3000/api/v1/convert
+        variables: []
+      height: 110
+      id: '1751253916662'
+      position:
+        x: 334
+        y: 287
+      positionAbsolute:
+        x: 334
+        y: 287
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '1751265922152'
+          - output
+          variable: output
+        selected: false
+        title: 结束
+        type: end
+      height: 90
+      id: '1751254067163'
+      position:
+        x: 1814
+        y: 287
+      positionAbsolute:
+        x: 1814
+        y: 287
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        is_team_authorization: true
+        output_schema: null
+        paramSchemas:
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: JSON data
+            ja_JP: JSON data
+            pt_BR: JSON数据
+            zh_Hans: JSON数据
+          label:
+            en_US: JSON data
+            ja_JP: JSON data
+            pt_BR: JSON data
+            zh_Hans: JSON数据
+          llm_description: JSON data to be processed
+          max: null
+          min: null
+          name: content
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: JSON fields to be parsed
+            ja_JP: JSON fields to be parsed
+            pt_BR: JSON fields to be parsed
+            zh_Hans: 需要解析的 JSON 字段
+          label:
+            en_US: JSON filter
+            ja_JP: JSON filter
+            pt_BR: JSON filter
+            zh_Hans: JSON解析对象
+          llm_description: JSON fields to be parsed
+          max: null
+          min: null
+          name: json_filter
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: 1
+          form: form
+          human_description:
+            en_US: Ensure the JSON output is ASCII encoded
+            ja_JP: Ensure the JSON output is ASCII encoded
+            pt_BR: Ensure the JSON output is ASCII encoded
+            zh_Hans: 确保输出的 JSON 是 ASCII 编码
+          label:
+            en_US: Ensure ASCII
+            ja_JP: Ensure ASCII
+            pt_BR: Ensure ASCII
+            zh_Hans: 确保 ASCII
+          llm_description: ''
+          max: null
+          min: null
+          name: ensure_ascii
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: boolean
+        params:
+          content: ''
+          ensure_ascii: ''
+          json_filter: ''
+        provider_id: langgenius/json_process/json_process
+        provider_name: langgenius/json_process/json_process
+        provider_type: builtin
+        selected: false
+        title: JSON 解析
+        tool_configurations:
+          ensure_ascii: 0
+        tool_label: JSON 解析
+        tool_name: parse
+        tool_parameters:
+          content:
+            type: mixed
+            value: '{{#1751253916662.body#}}'
+          json_filter:
+            type: mixed
+            value: data.metadata
+        type: tool
+      height: 90
+      id: '1751256694068'
+      position:
+        x: 638
+        y: 287
+      positionAbsolute:
+        x: 638
+        y: 287
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "import json\n\ndef main(arg1: str) -> dict:\n    obj = json.loads(arg1)\n\
+          \    pages = (\n        obj\n        .get(\"data\", {}) # 如果 data 不在，返回\
+          \ {}\n        .get(\"metadata\", {})  # 如果 metadata 不在，返回 {}\n        .get(\"\
+          pages\")  # 最后一层可以允许返回 None\n    )\n    return {\"result\": pages}"
+        code_language: python3
+        desc: ''
+        outputs:
+          result:
+            children: null
+            type: array[object]
+        selected: false
+        title: 代码执行
+        type: code
+        variables:
+        - value_selector:
+          - '1751253916662'
+          - body
+          variable: arg1
+      height: 54
+      id: '1751261925888'
+      position:
+        x: 942
+        y: 287
+      positionAbsolute:
+        x: 942
+        y: 287
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        error_handle_mode: terminated
+        height: 174
+        is_parallel: true
+        iterator_selector:
+        - '1751261925888'
+        - result
+        output_selector:
+        - '1751265935484'
+        - output
+        output_type: array[string]
+        parallel_nums: 10
+        selected: false
+        start_node_id: 1751265922152start
+        title: 迭代
+        type: iteration
+        width: 508
+      height: 174
+      id: '1751265922152'
+      position:
+        x: 1246
+        y: 287
+      positionAbsolute:
+        x: 1246
+        y: 287
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 508
+      zIndex: 1
+    - data:
+        desc: ''
+        isInIteration: true
+        selected: false
+        title: ''
+        type: iteration-start
+      draggable: false
+      height: 48
+      id: 1751265922152start
+      parentId: '1751265922152'
+      position:
+        x: 60
+        y: 63
+      positionAbsolute:
+        x: 1306
+        y: 350
+      selectable: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom-iteration-start
+      width: 44
+      zIndex: 1002
+    - data:
+        desc: ''
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1751265922152'
+        selected: false
+        template: '## 第 {{ index + 1 }} 页内容如下：
+
+          {{ arg1.content }}'
+        title: 模板转换
+        type: template-transform
+        variables:
+        - value_selector:
+          - '1751265922152'
+          - item
+          variable: arg1
+        - value_selector:
+          - '1751265922152'
+          - index
+          variable: index
+      height: 54
+      id: '1751265935484'
+      parentId: '1751265922152'
+      position:
+        x: 204
+        y: 60
+      positionAbsolute:
+        x: 1450
+        y: 347
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+      zIndex: 1002
+    viewport:
+      x: 29.800000000000068
+      y: 95.59999999999997
+      zoom: 0.7
