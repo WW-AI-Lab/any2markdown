@@ -56,6 +56,7 @@ class Config(BaseSettings):
     model_retry_attempts: int = Field(default=3, description="模型下载重试次数")
     
     # Marker配置
+    marker_config_path: Optional[str] = Field(default=None, description="Marker配置文件路径")
     marker_force_ocr: bool = Field(default=False, description="是否强制OCR")
     marker_default_languages: str = Field(default="en", description="Marker默认语言")
     marker_max_pages: int = Field(default=50, description="Marker最大页数限制")
@@ -69,7 +70,7 @@ class Config(BaseSettings):
     
     # Word处理配置
     word_preserve_formatting: bool = Field(default=True, description="是否保持Word格式")
-    word_extract_images: bool = Field(default=True, description="是否提取Word图片")
+    word_extract_images: bool = Field(default=False, description="是否提取Word图片")
     word_convert_equations: bool = Field(default=True, description="是否转换Word公式")
     
     # Excel处理配置
@@ -111,6 +112,7 @@ class Config(BaseSettings):
     enable_cors: bool = Field(default=True, description="是否启用CORS")
     allowed_origins: str = Field(default="*", description="允许的源")
     enable_auth: bool = Field(default=False, description="是否启用认证")
+    api_key: Optional[str] = Field(default=None, description="API密钥")
     rate_limit_per_minute: int = Field(default=60, description="每分钟速率限制")
     
     # 开发配置
@@ -119,12 +121,30 @@ class Config(BaseSettings):
     
     # Redis配置
     redis_url: str = Field(default="redis://localhost:6379/0", description="Redis连接URL")
+    redis_password: Optional[str] = Field(default=None, description="Redis密码")
     redis_ssl: bool = Field(default=False, description="是否使用Redis SSL")
     
     # 监控配置
     enable_metrics: bool = Field(default=True, description="是否启用指标")
     metrics_port: int = Field(default=9090, description="指标端口")
     health_check_path: str = Field(default="/health", description="健康检查路径")
+    
+    # 输出配置
+    default_output_format: str = Field(default="markdown", description="默认输出格式")
+    paginate_output: bool = Field(default=True, description="是否分页输出")
+    split_by_pages: bool = Field(default=True, description="是否按页分割")
+    include_metadata: bool = Field(default=True, description="是否包含元数据")
+    
+    # 批处理配置
+    enable_batch_processing: bool = Field(default=True, description="是否启用批处理")
+    batch_max_size: int = Field(default=10, description="批处理最大大小")
+    enable_async_processing: bool = Field(default=True, description="是否启用异步处理")
+    process_timeout: int = Field(default=300, description="处理超时时间")
+    
+    # 实验性功能
+    enable_streaming_response: bool = Field(default=False, description="是否启用流式响应")
+    enable_websocket: bool = Field(default=False, description="是否启用WebSocket")
+    enable_graphql: bool = Field(default=False, description="是否启用GraphQL")
     
     # 清理配置
     cleanup_interval: int = Field(default=3600, description="临时文件清理间隔(秒)")
