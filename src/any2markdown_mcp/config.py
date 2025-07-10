@@ -17,9 +17,12 @@ class Config(BaseSettings):
     """应用配置类"""
     
     # 服务器配置
-    host: str = Field(default="0.0.0.0", description="服务器主机地址")
-    port: int = Field(default=3000, description="服务器端口")
+    http_host: str = Field(default="0.0.0.0", description="HTTP服务器主机地址")
+    http_port: int = Field(default=3000, description="HTTP服务器端口")
+    host: str = Field(default="0.0.0.0", description="服务器主机地址")  # 保持兼容性
+    port: int = Field(default=3000, description="服务器端口")  # 保持兼容性
     mcp_path: str = Field(default="/mcp", description="MCP服务路径")
+    mcp_server_name: str = Field(default="any2markdown", description="MCP服务器名称")
     debug: bool = Field(default=False, description="调试模式")
     
     # 并发控制
@@ -27,11 +30,16 @@ class Config(BaseSettings):
     
     # 文件处理配置
     max_file_size: int = Field(default=100 * 1024 * 1024, description="最大文件大小(字节)")
+    temp_dir: str = Field(default="/tmp/any2markdown", description="临时文件目录")
     temp_image_dir: str = Field(default="./temp_images", description="临时图片存储目录")
+    cleanup_temp_files: bool = Field(default=True, description="是否清理临时文件")
     
     # 模型配置
     model_cache_dir: str = Field(default="~/.cache/marker", description="Marker模型缓存目录")
-    device: str = Field(default="auto", description="计算设备 (cpu/cuda/mps/auto)")
+    auto_load_models: bool = Field(default=True, description="是否自动加载模型")
+    model_device: str = Field(default="auto", description="计算设备 (cpu/cuda/mps/auto)")
+    device: str = Field(default="auto", description="计算设备 (cpu/cuda/mps/auto)")  # 保持兼容性
+    gpu_memory_fraction: float = Field(default=0.8, description="GPU内存使用比例")
     
     # Hugging Face模型缓存配置
     hf_home: str = Field(default="~/.cache/huggingface", description="Hugging Face缓存根目录")
@@ -47,18 +55,29 @@ class Config(BaseSettings):
     model_download_timeout: int = Field(default=300, description="模型下载超时时间(秒)")
     model_retry_attempts: int = Field(default=3, description="模型下载重试次数")
     
+    # Marker配置
+    marker_force_ocr: bool = Field(default=False, description="是否强制OCR")
+    marker_default_languages: str = Field(default="en", description="Marker默认语言")
+    marker_max_pages: int = Field(default=50, description="Marker最大页数限制")
+    
     # PDF处理配置
-    pdf_languages: str = Field(default="en", description="PDF OCR默认语言")
+    pdf_default_languages: str = Field(default="en,zh-cn", description="PDF默认语言")
+    pdf_max_resolution: int = Field(default=300, description="PDF最大分辨率")
+    pdf_skip_images: bool = Field(default=False, description="是否跳过PDF图片")
     pdf_force_ocr: bool = Field(default=False, description="是否强制OCR")
     pdf_max_pages: int = Field(default=1000, description="PDF最大页数限制")
     
     # Word处理配置
     word_preserve_formatting: bool = Field(default=True, description="是否保持Word格式")
     word_extract_images: bool = Field(default=True, description="是否提取Word图片")
+    word_convert_equations: bool = Field(default=True, description="是否转换Word公式")
     
     # Excel处理配置
     excel_max_rows: int = Field(default=10000, description="Excel最大行数限制")
     excel_max_sheets: int = Field(default=20, description="Excel最大工作表数限制")
+    excel_max_rows_per_sheet: int = Field(default=10000, description="Excel每个工作表最大行数")
+    excel_include_empty_cells: bool = Field(default=False, description="是否包含空单元格")
+    excel_convert_formulas: bool = Field(default=True, description="是否转换公式")
     
     # 图片处理配置
     image_max_size: int = Field(default=10 * 1024 * 1024, description="单个图片最大大小")
@@ -72,16 +91,40 @@ class Config(BaseSettings):
     # 缓存配置
     enable_cache: bool = Field(default=True, description="是否启用缓存")
     cache_ttl: int = Field(default=3600, description="缓存TTL(秒)")
+    cache_max_size: int = Field(default=1000, description="缓存最大条目数")
+    memory_limit: int = Field(default=2147483648, description="内存限制(字节)")
+    enable_caching: bool = Field(default=True, description="是否启用缓存")
     
     # 日志配置
-    log_level: str = Field(default="DEBUG", description="日志级别")
-    log_file: Optional[str] = Field(default="logs/server.log", description="日志文件路径")
+    log_level: str = Field(default="INFO", description="日志级别")
+    log_file: Optional[str] = Field(default="logs/any2markdown-mcp.log", description="日志文件路径")
+    log_format: str = Field(default="json", description="日志格式")
+    log_rotation: bool = Field(default=True, description="是否启用日志轮转")
+    log_max_size: str = Field(default="10MB", description="日志文件最大大小")
+    log_backup_count: int = Field(default=5, description="日志文件备份数量")
     
-    # 安全配置
+    # 安全和CORS配置
     allowed_file_types: List[str] = Field(
         default=["pdf", "docx", "doc", "xlsx", "xls"], 
         description="允许的文件类型"
     )
+    enable_cors: bool = Field(default=True, description="是否启用CORS")
+    allowed_origins: str = Field(default="*", description="允许的源")
+    enable_auth: bool = Field(default=False, description="是否启用认证")
+    rate_limit_per_minute: int = Field(default=60, description="每分钟速率限制")
+    
+    # 开发配置
+    reload: bool = Field(default=False, description="是否启用热重载")
+    workers: int = Field(default=1, description="工作进程数")
+    
+    # Redis配置
+    redis_url: str = Field(default="redis://localhost:6379/0", description="Redis连接URL")
+    redis_ssl: bool = Field(default=False, description="是否使用Redis SSL")
+    
+    # 监控配置
+    enable_metrics: bool = Field(default=True, description="是否启用指标")
+    metrics_port: int = Field(default=9090, description="指标端口")
+    health_check_path: str = Field(default="/health", description="健康检查路径")
     
     # 清理配置
     cleanup_interval: int = Field(default=3600, description="临时文件清理间隔(秒)")
@@ -89,9 +132,10 @@ class Config(BaseSettings):
     
     class Config:
         """Pydantic配置"""
-        env_prefix = "ANY2MD_"
+        env_prefix = ""  # 移除前缀以匹配现有环境变量
         env_file = ".env"
         case_sensitive = False
+        extra = "allow"  # 允许额外字段
     
     def __init__(self, **kwargs):
         """初始化配置"""

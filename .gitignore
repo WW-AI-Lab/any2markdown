@@ -221,8 +221,6 @@ dump.rdb
 .dockerignore
 
 # Kubernetes
-*.yaml
-*.yml
 !docker-compose.yml
 !pyproject.toml
 
