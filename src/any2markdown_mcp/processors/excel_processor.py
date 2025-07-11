@@ -191,6 +191,8 @@ class ExcelProcessor(BaseProcessor):
         try:
             # 指定要处理的工作表
             target_sheets = options.get("sheets", excel_info["sheet_names"])
+            if target_sheets is None:
+                target_sheets = excel_info["sheet_names"]
             if isinstance(target_sheets, str):
                 target_sheets = [target_sheets]
             

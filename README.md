@@ -47,6 +47,9 @@ cd any2markdown
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
+# 准备环境变量文件
+cp env.example .env
+
 # 安装依赖
 pip install -r requirements.txt
 ```

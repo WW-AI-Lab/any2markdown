@@ -67,13 +67,69 @@ check_requirements() {
         exit 1
     fi
     
+    # 修复版本比较逻辑
     python_version=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-    if [[ $(echo "$python_version < 3.9" | bc -l) -eq 1 ]]; then
+    major_version=$(echo "$python_version" | cut -d. -f1)
+    minor_version=$(echo "$python_version" | cut -d. -f2)
+    
+    # 检查是否满足Python 3.9+要求
+    if [[ $major_version -lt 3 ]] || [[ $major_version -eq 3 && $minor_version -lt 9 ]]; then
         log_error "Python版本必须 >= 3.9，当前版本: $python_version"
         exit 1
     fi
     
     log_success "Python版本检查通过: $python_version"
+}
+
+# 检查并创建虚拟环境
+check_and_create_venv() {
+    log_info "检查Python虚拟环境..."
+    
+    if [[ ! -d ".venv" ]]; then
+        log_info "虚拟环境不存在，正在创建..."
+        python3 -m venv .venv
+        if [[ $? -ne 0 ]]; then
+            log_error "创建虚拟环境失败"
+            exit 1
+        fi
+        log_success "虚拟环境创建成功"
+    else
+        log_info "虚拟环境已存在"
+    fi
+    
+    # 激活虚拟环境
+    log_info "激活虚拟环境..."
+    source .venv/bin/activate
+    
+    # 验证虚拟环境
+    if [[ "$VIRTUAL_ENV" == "" ]]; then
+        log_error "虚拟环境激活失败"
+        exit 1
+    fi
+    
+    log_success "虚拟环境激活成功: $VIRTUAL_ENV"
+}
+
+# 检查并创建环境配置文件
+check_and_create_env() {
+    log_info "检查环境配置文件..."
+    
+    if [[ ! -f ".env" ]]; then
+        if [[ -f "env.example" ]]; then
+            log_info "环境文件不存在，从 env.example 复制..."
+            cp env.example .env
+            if [[ $? -ne 0 ]]; then
+                log_error "复制环境文件失败"
+                exit 1
+            fi
+            log_success "环境文件创建成功"
+        else
+            log_error "env.example 文件不存在，无法创建环境配置"
+            exit 1
+        fi
+    else
+        log_info "环境配置文件已存在"
+    fi
 }
 
 # 检查Docker要求
@@ -105,16 +161,6 @@ setup_environment() {
     
     log_info "设置环境配置..."
     
-    if [[ ! -f "$env_file" ]]; then
-        if [[ -f "env.example" ]]; then
-            log_warning "环境文件 $env_file 不存在，从 env.example 复制"
-            cp env.example "$env_file"
-        else
-            log_error "环境文件 $env_file 和 env.example 都不存在"
-            exit 1
-        fi
-    fi
-    
     # 更新端口配置
     if [[ -n "$PORT" ]]; then
         log_info "设置端口为: $PORT"
@@ -142,16 +188,9 @@ deploy_source() {
     log_info "开始源码部署..."
     
     check_requirements
+    check_and_create_venv
+    check_and_create_env
     setup_environment
-    
-    # 创建虚拟环境
-    if [[ ! -d ".venv" ]]; then
-        log_info "创建Python虚拟环境..."
-        python3 -m venv .venv
-    fi
-    
-    # 激活虚拟环境
-    source .venv/bin/activate
     
     # 安装依赖
     log_info "安装Python依赖..."
@@ -165,9 +204,34 @@ deploy_source() {
     log_info "启动MCP服务器..."
     log_info "服务器将在 http://localhost:${PORT:-3000} 启动"
     log_info "API文档: http://localhost:${PORT:-3000}/api/v1/docs"
-    log_info "按 Ctrl+C 停止服务器"
     
-    python run_server.py
+    # 检查是否在开发模式
+    if [[ "$DEV_MODE" == "true" ]]; then
+        log_info "开发模式：前台运行，按 Ctrl+C 停止服务器"
+        python run_server.py
+    else
+        log_info "生产模式：后台运行"
+        nohup python run_server.py > server.log 2>&1 &
+        server_pid=$!
+        log_info "服务器已启动，PID: $server_pid"
+        log_info "日志文件: server.log"
+        
+        # 等待服务器启动
+        sleep 5
+        
+        # 检查服务器是否成功启动
+        if curl -s http://localhost:${PORT:-3000}/health > /dev/null; then
+            log_success "服务器启动成功！"
+            log_info "服务地址: http://localhost:${PORT:-3000}"
+            log_info "API文档: http://localhost:${PORT:-3000}/api/v1/docs"
+            log_info "查看日志: tail -f server.log"
+            log_info "停止服务: kill $server_pid"
+        else
+            log_error "服务器启动失败，请检查日志"
+            tail -20 server.log
+            exit 1
+        fi
+    fi
 }
 
 # Docker部署
