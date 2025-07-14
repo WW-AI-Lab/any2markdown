@@ -46,10 +46,14 @@ mkdir -p ${WORK_DIR}/logs
 mkdir -p ${WORK_DIR}/temp_images
 mkdir -p ${WORK_DIR}/uploads
 
-# 设置权限（如果有权限的话）
+# 确保目录权限正确（使用root权限）
 chmod -R 755 ${WORK_DIR}/logs 2>/dev/null || true
 chmod -R 755 ${WORK_DIR}/temp_images 2>/dev/null || true
 chmod -R 755 ${WORK_DIR}/uploads 2>/dev/null || true
+
+# 确保缓存目录权限正确
+mkdir -p /root/.cache/marker /root/.cache/huggingface /root/.cache/torch /root/.cache/transformers
+chmod -R 755 /root/.cache 2>/dev/null || true
 
 # 检查Python环境
 print_info "🐍 Checking Python environment..."

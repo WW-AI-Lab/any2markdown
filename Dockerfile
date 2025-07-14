@@ -31,22 +31,19 @@ RUN chmod +x docker-entrypoint.sh
 # 创建必要的目录
 RUN mkdir -p logs temp_images uploads
 
-# 创建非root用户（安全最佳实践）
-RUN groupadd -r appuser && useradd -r -g appuser -m appuser
-
-# 创建模型缓存目录（支持挂载）
-RUN mkdir -p /app/models/cache \
+# 创建模型缓存目录（使用root权限，确保完全访问权限）
+RUN mkdir -p /root/.cache/marker \
+    /root/.cache/huggingface \
+    /root/.cache/torch \
+    /root/.cache/transformers \
+    /app/models/cache \
     /app/models/huggingface \
     /app/models/torch \
-    /app/models/transformers \
-    /home/appuser/.cache/marker \
-    /home/appuser/.cache/huggingface \
-    /home/appuser/.cache/torch \
-    /home/appuser/.cache/transformers
+    /app/models/transformers
 
-# 设置目录权限
-RUN chown -R appuser:appuser /app /home/appuser
-USER appuser
+# 确保所有目录具有完全访问权限
+RUN chmod -R 755 /app && \
+    chmod -R 755 /root/.cache
 
 # 设置环境变量
 ENV PYTHONPATH=/app
@@ -62,18 +59,18 @@ ENV MAX_REQUESTS=1000
 ENV MAX_REQUESTS_JITTER=100
 ENV KEEPALIVE=5
 
-# 模型缓存配置（可通过docker run -e 覆盖）
-ENV MODEL_CACHE_DIR=/home/appuser/.cache/marker
-ENV HF_HOME=/home/appuser/.cache/huggingface
-ENV HF_HUB_CACHE=/home/appuser/.cache/huggingface/hub
-ENV HF_ASSETS_CACHE=/home/appuser/.cache/huggingface/assets
-ENV TORCH_HOME=/home/appuser/.cache/torch
-ENV TRANSFORMERS_CACHE=/home/appuser/.cache/transformers
+# 模型缓存配置（使用root用户目录）
+ENV MODEL_CACHE_DIR=/root/.cache/marker
+ENV HF_HOME=/root/.cache/huggingface
+ENV HF_HUB_CACHE=/root/.cache/huggingface/hub
+ENV HF_ASSETS_CACHE=/root/.cache/huggingface/assets
+ENV TORCH_HOME=/root/.cache/torch
+ENV TRANSFORMERS_CACHE=/root/.cache/transformers
 ENV HF_HUB_DISABLE_TELEMETRY=true
 ENV HF_HUB_DISABLE_PROGRESS_BARS=false
 
 # 声明挂载点（用于模型缓存持久化）
-VOLUME ["/home/appuser/.cache/marker", "/home/appuser/.cache/huggingface", "/home/appuser/.cache/torch", "/home/appuser/.cache/transformers"]
+VOLUME ["/root/.cache/marker", "/root/.cache/huggingface", "/root/.cache/torch", "/root/.cache/transformers"]
 
 # 暴露端口
 EXPOSE 3000
@@ -82,5 +79,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:3000/api/v1/status', timeout=5)" || exit 1
 
-# 使用优化的入口脚本
+# 使用优化的入口脚本（以root用户运行）
 ENTRYPOINT ["./docker-entrypoint.sh"] 
