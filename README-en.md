@@ -64,7 +64,17 @@ docker run -d \
   -v $(pwd)/uploads:/app/uploads \
   -v $(pwd)/temp_images:/app/temp_images \
   -v $(pwd)/logs:/app/logs \
+  -v $(pwd)/models:/root/.cache/marker \
+  -v $(pwd)/models/huggingface:/root/.cache/huggingface \
+  -v $(pwd)/models/torch:/root/.cache/torch \
+  -v $(pwd)/models/transformers:/root/.cache/transformers \
   ccr.ccs.tencentyun.com/yfgaia/any2markdown-mcp-server:latest
+
+# 💡 Volume Mount Explanation:
+# - uploads/: Uploaded file storage
+# - temp_images/: Temporary image cache
+# - logs/: Log files
+# - models/: AI model cache (auto-downloaded on first run, ~3-5GB)
 
 # Or using deployment script
 ./scripts/deploy.sh docker

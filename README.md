@@ -67,7 +67,17 @@ docker run -d \
   -v $(pwd)/uploads:/app/uploads \
   -v $(pwd)/temp_images:/app/temp_images \
   -v $(pwd)/logs:/app/logs \
+  -v $(pwd)/models:/root/.cache/marker \
+  -v $(pwd)/models/huggingface:/root/.cache/huggingface \
+  -v $(pwd)/models/torch:/root/.cache/torch \
+  -v $(pwd)/models/transformers:/root/.cache/transformers \
   ccr.ccs.tencentyun.com/yfgaia/any2markdown-mcp-server:latest
+
+# 💡 卷挂载说明：
+# - uploads/: 上传文件存储
+# - temp_images/: 临时图片缓存  
+# - logs/: 日志文件
+# - models/: AI模型缓存（首次运行会自动下载，约3-5GB）
 
 # 或使用部署脚本
 ./scripts/deploy.sh docker
