@@ -53,7 +53,33 @@ pip install -r requirements.txt
 
 ### Quick Start
 
-#### Option 1: Source Code Deployment (Recommended for Development)
+#### Option 1: Docker Deployment (Recommended, Ready-to-use)
+
+```bash
+# Start service using pre-built image
+docker run -d \
+  -p 3000:3000 \
+  --name any2markdown-mcp-server \
+  --restart unless-stopped \
+  -v $(pwd)/uploads:/app/uploads \
+  -v $(pwd)/temp_images:/app/temp_images \
+  -v $(pwd)/logs:/app/logs \
+  ccr.ccs.tencentyun.com/yfgaia/any2markdown-mcp-server:latest
+
+# Or using deployment script
+./scripts/deploy.sh docker
+
+# GPU-enabled deployment (requires NVIDIA GPU)
+./scripts/deploy.sh docker-gpu
+
+# Custom port deployment
+./scripts/deploy.sh docker -p 8080
+
+# Or using docker-compose directly:
+docker-compose up -d any2markdown-mcp
+```
+
+#### Option 2: Source Code Deployment (Development Environment)
 
 ```bash
 # Start the server using deployment script
@@ -66,22 +92,6 @@ python run_server.py
 # - MCP Protocol: http://localhost:3000 (Streamable HTTP)
 # - REST API: http://localhost:3000/api/v1/
 # - API Documentation: http://localhost:3000/api/v1/docs
-```
-
-#### Option 2: Docker Deployment (Recommended for Production)
-
-```bash
-# Standard deployment
-./scripts/deploy.sh docker
-
-# GPU-enabled deployment (requires NVIDIA GPU)
-./scripts/deploy.sh docker-gpu
-
-# Custom port deployment
-./scripts/deploy.sh docker -p 8080
-
-# Or using docker-compose directly:
-docker-compose up -d any2markdown-mcp
 ```
 
 ### Test the Installation

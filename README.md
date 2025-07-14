@@ -56,7 +56,33 @@ pip install -r requirements.txt
 
 ### 快速启动
 
-#### 方式一：源码部署（推荐开发环境）
+#### 方式一：Docker 部署（推荐，开箱即用）
+
+```bash
+# 使用预构建镜像直接启动服务
+docker run -d \
+  -p 3000:3000 \
+  --name any2markdown-mcp-server \
+  --restart unless-stopped \
+  -v $(pwd)/uploads:/app/uploads \
+  -v $(pwd)/temp_images:/app/temp_images \
+  -v $(pwd)/logs:/app/logs \
+  ccr.ccs.tencentyun.com/yfgaia/any2markdown-mcp-server:latest
+
+# 或使用部署脚本
+./scripts/deploy.sh docker
+
+# GPU 加速部署（需要 NVIDIA GPU）
+./scripts/deploy.sh docker-gpu
+
+# 自定义端口部署
+./scripts/deploy.sh docker -p 8080
+
+# 或直接使用 docker-compose：
+docker-compose up -d any2markdown-mcp
+```
+
+#### 方式二：源码部署（开发环境）
 
 ```bash
 # 使用部署脚本启动服务器
@@ -69,22 +95,6 @@ python run_server.py
 # - MCP 协议：http://localhost:3000/mcp (流式 HTTP)
 # - REST API：http://localhost:3000/api/v1/
 # - API 文档：http://localhost:3000/api/v1/docs
-```
-
-#### 方式二：Docker 部署（推荐生产环境）
-
-```bash
-# 标准部署
-./scripts/deploy.sh docker
-
-# GPU 加速部署（需要 NVIDIA GPU）
-./scripts/deploy.sh docker-gpu
-
-# 自定义端口部署
-./scripts/deploy.sh docker -p 8080
-
-# 或直接使用 docker-compose：
-docker-compose up -d any2markdown-mcp
 ```
 
 ### 测试安装
