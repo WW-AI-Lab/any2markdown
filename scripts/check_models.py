@@ -83,9 +83,6 @@ async def download_models():
         # 显示友好的下载前提醒
         show_download_warning()
         
-        # 设置环境变量确保显示进度
-        os.environ['HF_HUB_DISABLE_PROGRESS_BARS'] = 'false'
-        
         # 尝试导入模型管理器
         try:
             from any2markdown_mcp.models.model_manager import ModelManager
@@ -95,6 +92,26 @@ async def download_models():
             print_error("💡 请确保已正确安装所有依赖:")
             print_error("   pip install -r requirements.txt")
             return False
+        
+        # 🔧 在创建模型管理器之前，先确保所有环境变量都正确设置
+        print_progress("🔧 设置模型缓存环境变量...")
+        
+        # 设置模型缓存相关的环境变量
+        env_mappings = {
+            'MODEL_CACHE_DIR': settings.model_cache_dir,
+            'HF_HOME': settings.hf_home,
+            'HF_HUB_CACHE': settings.hf_hub_cache,
+            'HF_ASSETS_CACHE': settings.hf_assets_cache,
+            'TORCH_HOME': settings.torch_home,
+            'TRANSFORMERS_CACHE': settings.transformers_cache,
+            'HF_HUB_ENABLE_HF_TRANSFER': str(settings.hf_hub_enable_hf_transfer).lower(),
+            'HF_HUB_DISABLE_PROGRESS_BARS': 'false',  # 确保显示进度
+            'HF_HUB_DISABLE_TELEMETRY': str(settings.hf_hub_disable_telemetry).lower(),
+        }
+        
+        for env_var, value in env_mappings.items():
+            os.environ[env_var] = value
+            print_info(f"  ✅ 设置 {env_var} = {value}")
         
         print_progress("📦 创建模型管理器实例...")
         
