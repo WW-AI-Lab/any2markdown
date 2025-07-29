@@ -7,7 +7,7 @@ pydantic>=2.10.0
 httpx>=0.28.1
 
 # Document Processing Dependencies - Available stable versions
-marker-pdf>=1.7.0  # Official release from datalab-to/marker
+marker-pdf>=1.8.2  # Official release from datalab-to/marker
 python-docx>=1.1.0
 pandas>=2.2.0
 openpyxl>=3.1.0
