@@ -4,11 +4,10 @@ FROM python:3.11-slim
 # 设置工作目录
 WORKDIR /app
 
-# 直接配置pip使用阿里云源（避免系统包管理器问题）
-RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ && \
-    pip config set global.timeout 120 && \
-    pip config set global.trusted-host mirrors.aliyun.com && \
-    pip config set install.trusted-host mirrors.aliyun.com
+# 构建时可注入依赖源（默认官方 PyPI）
+ARG PIP_INDEX_URL=https://pypi.org/simple
+RUN pip config set global.index-url ${PIP_INDEX_URL} && \
+    pip config set global.timeout 120
 
 # 复制依赖文件
 COPY requirements-prod.txt ./requirements.txt

@@ -135,13 +135,13 @@ any2markdown/
 # 克隆项目
 cd any2markdown
 
-# 创建虚拟环境 (Python 3.9+)
-python -m venv venv
+# 创建虚拟环境 (Python 3.10 - 3.13，推荐 3.13)
+python3.13 -m venv venv
 source venv/bin/activate  # macOS/Linux
 # venv\Scripts\activate   # Windows
 
-# 安装依赖
-pip install -r requirements.txt
+# 安装依赖（默认使用华为镜像）
+PIP_CONFIG_FILE=.pip/pip.conf pip install -r requirements.txt
 ```
 
 ### 2. 启动服务器

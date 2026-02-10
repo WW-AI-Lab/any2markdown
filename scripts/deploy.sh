@@ -5,6 +5,10 @@
 
 set -e
 
+# 默认 PyPI 镜像（可通过环境变量 PIP_INDEX_URL 覆盖）
+DEFAULT_PIP_INDEX_URL="https://repo.huaweicloud.com/repository/pypi/simple"
+PIP_INDEX_URL="${PIP_INDEX_URL:-$DEFAULT_PIP_INDEX_URL}"
+
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -48,6 +52,9 @@ Any2Markdown MCP Server 部署脚本
   --no-gpu      禁用GPU支持（仅源码部署）
   --dev         开发模式（启用调试日志）
 
+环境变量:
+  PIP_INDEX_URL 指定依赖安装镜像源（默认: https://repo.huaweicloud.com/repository/pypi/simple）
+
 示例:
   $0 source                    # 源码部署，使用默认配置
   $0 docker -p 8080           # Docker部署，使用8080端口
@@ -72,9 +79,9 @@ check_requirements() {
     major_version=$(echo "$python_version" | cut -d. -f1)
     minor_version=$(echo "$python_version" | cut -d. -f2)
     
-    # 检查是否满足Python 3.9+要求
-    if [[ $major_version -lt 3 ]] || [[ $major_version -eq 3 && $minor_version -lt 9 ]]; then
-        log_error "Python版本必须 >= 3.9，当前版本: $python_version"
+    # 检查是否满足Python 3.10-3.13要求
+    if [[ $major_version -lt 3 ]] || [[ $major_version -eq 3 && $minor_version -lt 10 ]] || [[ $major_version -eq 3 && $minor_version -ge 14 ]]; then
+        log_error "Python版本必须在 3.10-3.13 范围内，当前版本: $python_version"
         exit 1
     fi
     
@@ -194,8 +201,9 @@ deploy_source() {
     
     # 安装依赖
     log_info "安装Python依赖..."
-    pip install --upgrade pip
-    pip install -r requirements.txt
+    log_info "使用镜像源: $PIP_INDEX_URL"
+    pip install -i "$PIP_INDEX_URL" --upgrade pip
+    pip install -i "$PIP_INDEX_URL" -r requirements.txt
     
     # 创建必要目录
     mkdir -p logs temp_images

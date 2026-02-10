@@ -12,6 +12,8 @@ NAMESPACE="yfgaia"
 IMAGE_NAME="any2markdown-mcp-server"
 TAG="${1:-latest}"
 FULL_IMAGE_NAME="${REGISTRY}/${NAMESPACE}/${IMAGE_NAME}:${TAG}"
+PIP_INDEX_URL="${PIP_INDEX_URL:-}"
+PULL_AFTER_PUSH="${PULL_AFTER_PUSH:-1}"
 
 # 颜色输出
 RED='\033[0;31m'
@@ -52,6 +54,35 @@ check_requirements() {
     fi
     
     echo_success "构建环境检查通过"
+}
+
+# 根据公网IP归属地选择更快的 Python 依赖源
+select_pip_mirror() {
+    echo_info "检测公网网络归属地并选择依赖源..."
+
+    # 允许外部手动覆盖
+    if [ -n "$PIP_INDEX_URL" ]; then
+        echo_info "使用外部指定依赖源: ${PIP_INDEX_URL}"
+        return
+    fi
+
+    local geo_json country_code
+    geo_json="$(curl -sS https://ipwho.is || true)"
+    if command -v jq >/dev/null 2>&1; then
+        country_code="$(echo "$geo_json" | jq -r '.country_code // empty' 2>/dev/null || true)"
+    else
+        country_code="$(echo "$geo_json" | sed -n 's/.*"country_code":"\([A-Z][A-Z]\)".*/\1/p' | head -n1)"
+    fi
+
+    if [ "$country_code" = "CN" ]; then
+        PIP_INDEX_URL="https://repo.huaweicloud.com/repository/pypi/simple"
+    else
+        # 当前实际网络归属地为美国，优先官方 PyPI
+        PIP_INDEX_URL="https://pypi.org/simple"
+    fi
+
+    echo_info "地理归属地: ${country_code:-unknown}"
+    echo_info "构建依赖源: ${PIP_INDEX_URL}"
 }
 
 # 创建并使用 buildx builder
@@ -105,6 +136,7 @@ build_and_push() {
     docker buildx build \
         --platform linux/amd64,linux/arm64 \
         --tag "${FULL_IMAGE_NAME}" \
+        --build-arg "PIP_INDEX_URL=${PIP_INDEX_URL}" \
         --push \
         --progress=plain \
         .
@@ -115,18 +147,43 @@ build_and_push() {
 # 验证镜像
 verify_image() {
     echo_info "验证推送的镜像..."
-    
-    # 检查镜像是否存在
-    if docker manifest inspect "${FULL_IMAGE_NAME}" &> /dev/null; then
-        echo_success "镜像验证成功"
-        
-        # 显示镜像信息
-        echo_info "镜像详细信息："
-        docker manifest inspect "${FULL_IMAGE_NAME}" | jq -r '.manifests[] | "Platform: \(.platform.os)/\(.platform.architecture)"'
-    else
-        echo_error "镜像验证失败"
-        exit 1
+
+    local max_retries=12
+    local retry=1
+    local sleep_seconds=5
+
+    while [ "$retry" -le "$max_retries" ]; do
+        if docker buildx imagetools inspect "${FULL_IMAGE_NAME}" &> /dev/null || docker manifest inspect "${FULL_IMAGE_NAME}" &> /dev/null; then
+            echo_success "镜像验证成功（第 ${retry}/${max_retries} 次）"
+            echo_info "镜像详细信息："
+
+            if docker manifest inspect "${FULL_IMAGE_NAME}" | jq -r '.manifests[] | "Platform: \(.platform.os)/\(.platform.architecture)"' 2>/dev/null; then
+                true
+            else
+                docker buildx imagetools inspect "${FULL_IMAGE_NAME}" || true
+            fi
+            return
+        fi
+
+        echo_warning "镜像暂未可见（第 ${retry}/${max_retries} 次），${sleep_seconds}s 后重试..."
+        sleep "${sleep_seconds}"
+        retry=$((retry + 1))
+    done
+
+    echo_error "镜像验证失败：推送成功但仓库侧在重试窗口内仍未查询到 manifest"
+    echo_info "可手动执行: docker buildx imagetools inspect ${FULL_IMAGE_NAME}"
+    exit 1
+}
+
+pull_image_to_local() {
+    if [ "${PULL_AFTER_PUSH}" != "1" ]; then
+        echo_info "跳过本地拉取（PULL_AFTER_PUSH=${PULL_AFTER_PUSH}）"
+        return
     fi
+
+    echo_info "拉取镜像到本地（当前架构）..."
+    docker pull "${FULL_IMAGE_NAME}"
+    echo_success "本地镜像拉取完成"
 }
 
 # 清理
@@ -149,6 +206,8 @@ show_usage() {
     echo "环境变量 (可选):"
     echo "  DOCKER_USERNAME    腾讯云镜像仓库用户名"
     echo "  DOCKER_PASSWORD    腾讯云镜像仓库密码"
+    echo "  PIP_INDEX_URL      手动指定构建依赖源（默认按公网归属地自动选择）"
+    echo "  PULL_AFTER_PUSH    推送后是否拉取到本地(1/0，默认: 1)"
     echo ""
     echo "示例:"
     echo "  $0                 # 构建 latest 标签"
@@ -169,9 +228,11 @@ main() {
     
     check_requirements
     setup_buildx
+    select_pip_mirror
     login_registry
     build_and_push
     verify_image
+    pull_image_to_local
     cleanup
     
     echo ""

@@ -1,7 +1,7 @@
 # Any2Markdown MCP Server
 
-[![Python Version](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://python.org)
-[![MCP Protocol](https://img.shields.io/badge/MCP-1.10%2B-green.svg)](https://modelcontextprotocol.io/)
+[![Python Version](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](https://python.org)
+[![MCP Protocol](https://img.shields.io/badge/MCP-1.26%2B-green.svg)](https://modelcontextprotocol.io/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 
@@ -32,7 +32,7 @@ A high-performance document conversion server that supports both **Model Context
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.9+ 
+- Python 3.10 - 3.13 (validated on Python 3.13; 3.14 is not recommended yet)
 - 4GB+ RAM (for AI models)
 - 10GB+ disk space (for model cache)
 
@@ -43,12 +43,15 @@ A high-performance document conversion server that supports both **Model Context
 git clone https://github.com/WW-AI-Lab/any2markdown.git
 cd any2markdown
 
-# Create virtual environment
-python -m venv .venv
+# Create virtual environment (Python 3.13 recommended)
+python3.13 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies (Huawei mirror by default)
+PIP_CONFIG_FILE=.pip/pip.conf pip install -r requirements.txt
+
+# Or use one-command bootstrap
+./scripts/setup_venv.sh
 ```
 
 ### Quick Start
@@ -110,8 +113,8 @@ python run_server.py
 # Test RESTful API
 python test_restful_api.py
 
-# Test MCP Protocol  
-python test_streamable_client.py
+# Test MCP Protocol (official SDK, streamable-http)
+python test_streamable_client.py ~/Downloads/测试翻译_1_1_translate.docx
 
 # Check service status
 ./scripts/deploy.sh status
@@ -349,7 +352,7 @@ pytest --cov=src/any2markdown_mcp --cov-report=html
 
 # Test specific functionality
 python test_restful_api.py      # REST API tests
-python test_streamable_client.py # MCP protocol tests
+python test_streamable_client.py ~/Downloads/测试翻译_1_1_translate.docx # MCP protocol tests
 ```
 
 ## 📊 Performance

@@ -1,5 +1,5 @@
 # MCP Server Core Dependencies - Using available stable versions
-mcp>=1.10.0
+mcp>=1.26.0
 fastapi>=0.115.13
 uvicorn[standard]>=0.31.0
 gunicorn>=21.2.0
@@ -7,7 +7,7 @@ pydantic>=2.10.0
 httpx>=0.28.1
 
 # Document Processing Dependencies - Available stable versions
-marker-pdf>=1.8.2  # Official release from datalab-to/marker
+marker-pdf>=1.10.2  # Official release from datalab-to/marker
 python-docx>=1.1.0
 pandas>=2.2.0
 openpyxl>=3.1.0

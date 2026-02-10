@@ -1,7 +1,7 @@
 # Any2Markdown MCP 服务器
 
-[![Python 版本](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://python.org)
-[![MCP 协议](https://img.shields.io/badge/MCP-1.10%2B-green.svg)](https://modelcontextprotocol.io/)
+[![Python 版本](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](https://python.org)
+[![MCP 协议](https://img.shields.io/badge/MCP-1.26%2B-green.svg)](https://modelcontextprotocol.io/)
 [![许可证](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![构建状态](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 
@@ -32,7 +32,7 @@
 ## 🚀 快速开始
 
 ### 系统要求
-- Python 3.9+ 
+- Python 3.10 - 3.13（已验证 Python 3.13，暂不建议 3.14）
 - 4GB+ 内存（用于 AI 模型）
 - 10GB+ 磁盘空间（用于模型缓存）
 
@@ -43,15 +43,18 @@
 git clone https://github.com/WW-AI-Lab/any2markdown.git
 cd any2markdown
 
-# 创建虚拟环境
-python -m venv .venv
+# 创建虚拟环境（推荐使用 Python 3.13）
+python3.13 -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
 # 准备环境变量文件
 cp env.example .env
 
-# 安装依赖
-pip install -r requirements.txt
+# 安装依赖（默认使用华为镜像）
+PIP_CONFIG_FILE=.pip/pip.conf pip install -r requirements.txt
+
+# 或一键安装
+./scripts/setup_venv.sh
 ```
 
 ### 快速启动
@@ -113,8 +116,8 @@ python run_server.py
 # 测试 RESTful API
 python test_restful_api.py
 
-# 测试 MCP 协议
-python test_streamable_client.py
+# 测试 MCP 协议（官方 SDK，streamable-http）
+python test_streamable_client.py ~/Downloads/测试翻译_1_1_translate.docx
 
 # 检查服务状态
 ./scripts/deploy.sh status
@@ -436,7 +439,7 @@ pytest --cov=src/any2markdown_mcp --cov-report=html
 
 # 测试特定功能
 python test_restful_api.py      # REST API 测试
-python test_streamable_client.py # MCP 协议测试
+python test_streamable_client.py ~/Downloads/测试翻译_1_1_translate.docx  # MCP 协议测试
 ```
 
 ## dify集成

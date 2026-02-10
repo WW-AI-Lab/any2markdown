@@ -1,5 +1,6 @@
 # Core MCP and FastAPI dependencies
-mcp>=1.10.0
+mcp>=1.26.0
+marker-pdf>=1.10.2
 fastapi>=0.115.13
 uvicorn[standard]>=0.31.0
 gunicorn>=21.2.0
